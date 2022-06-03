@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".lobby.LobbyActivity">
+
+    <game.eretseir.BouncyRecyclerView
+        android:id="@+id/usersRecyclerView"
+        android:layout_width="320dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="40dp"
+        android:clipToPadding="false"
+        android:paddingVertical="28dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintStart_toEndOf="@+id/onlineButton"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:itemCount="10"
+        tools:listitem="@layout/users_list_item" />
+
+    <TextView
+        android:id="@+id/gameCodeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="44dp"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/usersRecyclerView"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <game.eretseir.ThemeButton
+        android:id="@+id/startButton"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:drawable="@drawable/nuke_icon"
+        android:visibility="invisible"
+        app:baseColor="#3f3f3f"
+        app:cornerRadiusPercent="0.12"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/usersRecyclerView"
+        app:layout_constraintTop_toBottomOf="@+id/gameCodeTextView" />
+
+    <TextView
+        android:id="@+id/waitForAdminTextView"
+        android:layout_width="200sp"
+        android:layout_height="150sp"
+        android:background="@drawable/single_border_white"
+        android:gravity="center"
+        android:padding="20dp"
+        android:text="@string/waitForAdmin"
+        android:textColor="@color/white"
+        app:autoSizeTextType="uniform"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/usersRecyclerView"
+        app:layout_constraintTop_toBottomOf="@+id/gameCodeTextView" />
+
+    <Button
+        android:id="@+id/onlineButton"
+        style="@style/buttonSingleBorder"
+        android:layout_width="60sp"
+        android:layout_height="45sp"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="10dp"
+        android:text="@string/returnString"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

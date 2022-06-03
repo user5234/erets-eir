@@ -1,0 +1,32 @@
+<resources>
+
+    <style name="Widget.Theme.EretsEir.ActionBar.Fullscreen" parent="Widget.AppCompat.ActionBar">
+        <item name="android:background">@color/black_overlay</item>
+    </style>
+
+    <style name="Widget.Theme.EretsEir.ButtonBar.Fullscreen" parent="">
+        <item name="android:background">@color/black_overlay</item>
+        <item name="android:buttonBarStyle">?android:attr/buttonBarStyle</item>
+    </style>
+
+    <style name="textViewSingleBorder" parent="android:Widget.TextView">
+        <item name="android:background">@drawable/single_border_white</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="editTextSingleBorder" parent="android:Widget.EditText">
+        <item name="android:background">@drawable/single_border_white</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColorHint">#9AA7B0</item>
+    </style>
+
+    <style name="buttonSingleBorder" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textAlignment">center</item>
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Small</item>
+        <item name="android:textColor">@color/textColor</item>
+        <item name="rippleColor">#1FFF</item>
+        <item name="strokeColor">@color/borderColor</item>
+    </style>
+</resources>

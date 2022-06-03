@@ -1,0 +1,22 @@
+<resources>
+    <declare-styleable name="FullscreenAttrs">
+        <attr name="fullscreenBackgroundColor" format="color" />
+        <attr name="fullscreenTextColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="ThemeButton">
+        <attr name="android:text"/>
+        <attr name="android:drawable"/>
+        <attr name="mainColor" format="color"/>
+        <attr name="shadowColor" format="color"/>
+        <attr name="highlightColor" format="color"/>
+        <attr name="baseColor" format="color"/>
+        <attr name="foregroundColorPrimary" format="color"/>
+        <attr name="foregroundColorSecondary" format="color"/>
+        <attr name="cornerRadiusPercent" format="float"/>
+    </declare-styleable>
+
+    <declare-styleable name="LettresWheel">
+        <attr name="letters" format="string"/>
+    </declare-styleable>
+</resources>

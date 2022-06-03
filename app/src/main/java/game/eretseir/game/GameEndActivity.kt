@@ -1,0 +1,129 @@
+package game.eretseir.game
+
+import android.graphics.Color
+import android.os.Bundle
+import android.view.View
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
+import android.view.animation.AnimationUtils
+import android.widget.TextView
+import androidx.cardview.widget.CardView
+import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.lifecycleScope
+import game.eretseir.FullScreenActivity
+import game.eretseir.Game
+import game.eretseir.R
+import game.eretseir.databinding.GameEndActivityBinding
+import game.eretseir.lobby.UsersPointsRecyclerAdapter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import nl.dionsegijn.konfetti.core.Party
+import nl.dionsegijn.konfetti.core.Position
+import nl.dionsegijn.konfetti.core.Spread
+import nl.dionsegijn.konfetti.core.emitter.Emitter
+import java.util.concurrent.TimeUnit
+
+class GameEndActivity : FullScreenActivity() {
+
+    companion object {
+        lateinit var instance : GameEndActivity
+        lateinit var scope : LifecycleCoroutineScope
+    }
+
+    private lateinit var binding : GameEndActivityBinding
+    private lateinit var gameCode : String
+    private lateinit var userName : String
+    private lateinit var admin : String
+    private lateinit var game : Game
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        instance = this
+        scope = lifecycleScope
+
+        gameCode = intent.extras?.get("gameCode") as String
+        userName = intent.extras?.get("userName") as String
+        admin = intent.extras?.get("admin") as String
+
+        game = Game.fromExistingGame(gameCode)
+
+        binding = GameEndActivityBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        binding.winnerPlayer.root.visibility = INVISIBLE
+        binding.onlineButton.setOnClickListener { onBackPressed() }
+
+        val recyclerAdapter = UsersPointsRecyclerAdapter(admin, userName)
+        val players = recyclerAdapter.players
+        binding.usersRecyclerView.adapter = recyclerAdapter
+
+        scope.launch {
+            var bestPlayer : Pair<String, Long>
+            val flow = game.playersFsRef
+                .get()
+                .await()
+                .documents
+                .filter { it.data != null }
+                .toMutableList()
+                .apply {
+                    sortBy { Game.PlayerData.fromMap(it.data!!).points }
+                    bestPlayer = last().id to Game.PlayerData.fromMap(last().data!!).points
+                    removeLast()
+                }
+                .map { it.id to Game.PlayerData.fromMap(it.data!!).points.toInt() }
+                .asFlow()
+            var index = 0
+            //animate the winner
+            binding.winnerPlayer.root.apply {
+                visibility = VISIBLE
+                findViewById<TextView>(R.id.userNameTextView).text = bestPlayer.first
+                findViewById<TextView>(R.id.pointsTextView).text = "${bestPlayer.second}"
+                findViewById<CardView>(R.id.cardView).setCardBackgroundColor(Color.rgb(229, 184, 11))
+                if (bestPlayer.first == admin)
+                    findViewById<View>(R.id.leaderCrownImageView).visibility = VISIBLE
+                startAnimation(AnimationUtils.loadAnimation(this@GameEndActivity, R.anim.winner_animation))
+            }
+            //add the other players
+            flow.collect {
+                    delay(1000)
+                    players[it.first] = it.second
+                    recyclerAdapter.notifyItemInserted(index)
+                    binding.usersRecyclerView.scrollToPosition(index)
+                    index++
+                }
+            if (bestPlayer.first != userName)
+                return@launch
+            //weeeee are the championsssss
+            //start konfetti
+            delay(binding.winnerPlayer.root.animation.duration)
+            binding.konfettiView1.start(
+                Party(
+                    angle = 335,
+                    spread = Spread.SMALL,
+                    speed = 10F,
+                    maxSpeed = 50F,
+                    position = Position.Relative(0.0, 0.7),
+                    emitter = Emitter(duration = 5, TimeUnit.SECONDS).perSecond(80)
+                )
+            )
+            binding.konfettiView2.start(
+                Party(
+                    angle = 215,
+                    spread = Spread.SMALL,
+                    speed = 10F,
+                    maxSpeed = 50F,
+                    position = Position.Relative(1.0, 0.7),
+                    emitter = Emitter(duration = 5, TimeUnit.SECONDS).perSecond(80)
+                )
+            )
+        }
+    }
+
+    override fun onBackPressed() {
+        game.removePlayer(userName)
+        super.onBackPressed()
+    }
+}

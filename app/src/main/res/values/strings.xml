@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">ארץ עיר</string>
+    <string name="lobbyGameCode">קוד משחק: %1$s</string>
+    <string name="gameLetter">האות שלך: %1$s</string>
+    <string name="roundsLeft">נשארו %1$s משחקים</string>
+    <string name="returnString">חזור</string>
+    <string name="waitForAdmin">חכה למלך שיתחיל את המשחק</string>
+    <string name="enterNameHint">שם מגניב</string>
+    <string name="maxPlayers">מקסימום שחקנים:</string>
+    <string name="start">התחל</string>
+    <string name="enterCoolName">פה תכניס שם מגניב💰💰💰💰</string>
+    <string name="enterGameCode">פה תכניס קוד משחק🧑‍💻🧑‍💻🧑‍💻</string>
+    <string name="gameCodeHint">קוד משחק</string>
+    <string name="enter">כנס</string>
+    <string name="letters_wheel_description">גלגל המזל של אותיות עברית</string>
+    <string name="spin">סובב אותה אחשלי</string>
+    <string name="gamesAmount">כמה משחקים:</string>
+    <string name="gameEndScreenText">זהו תפסיקו להקליד נגמר הסיבוב</string>
+</resources>
