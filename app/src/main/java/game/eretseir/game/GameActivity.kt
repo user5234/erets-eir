@@ -26,7 +26,7 @@ import java.util.*
 import kotlin.concurrent.timerTask
 import kotlin.math.max
 
-private const val playTime = 1000
+private const val playTime = 60
 private const val countdownSeconds = 3
 
 class GameActivity : FullScreenActivity() {

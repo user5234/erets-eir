@@ -11,6 +11,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
+import kotlin.math.max
 
 val games = Firebase.firestore.collection("games")
 
@@ -249,16 +250,17 @@ class Game private constructor(gameCode: String) {
                 categorySolutions.forEach categorySolutions@ { solution ->
                     //another player submitted the same answer in this category
                     if (otherSolutions.any { otherPlayerSolutions -> otherPlayerSolutions[categoryName]!!.contains(solution) }) {
-                        points += 5
+                        points = max(points, 5)
                         return@categorySolutions
                     }
                     //another player submitted another solution in the same category
                     if (otherSolutions.any { otherPlayerSolutions -> otherPlayerSolutions[categoryName]!!.isNotEmpty() }) {
-                        points += 10
+                        points = max(points, 10)
                         return@categorySolutions
                     }
                     //no other player submitted any answer in this category
-                    points += 15
+                    points = 15
+                    return@playerCategories
                 }
             }
             batch.update(player.key,
