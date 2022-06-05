@@ -32,7 +32,9 @@
         app:layout_constraintStart_toEndOf="@+id/divider"
         app:layout_constraintTop_toBottomOf="@+id/textView"
         tools:listitem="@layout/game_solutions_list_item"
-        tools:itemCount="3"/>
+        tools:itemCount="3"
+        app:reverseLayout="true"
+        app:stackFromEnd="true"/>
 
     <View
         android:id="@+id/divider"
