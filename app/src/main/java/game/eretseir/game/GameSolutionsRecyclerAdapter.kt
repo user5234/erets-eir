@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.core.widget.doOnTextChanged
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import game.eretseir.BouncyRecyclerView
@@ -40,7 +39,7 @@ class GameSolutionsRecyclerAdapter(private val solutions : Collection<String>, p
                         holder.bindData(holderData)
                         mData.add(HolderData())
                         notifyItemInserted(itemCount)
-                        recyclerViews.forEach { it.post { it.scrollToPosition(itemCount - 1) } }
+                        recyclerViews.forEach { it.post { it.smoothScrollToPosition(itemCount - 1) } }
                         return@doOnTextChanged
                     }
                 }
@@ -56,6 +55,11 @@ class GameSolutionsRecyclerAdapter(private val solutions : Collection<String>, p
         recyclerViews.add(recyclerView)
     }
 
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+        recyclerViews.remove(recyclerView)
+    }
+
     private fun String.parse() = replace("-", " ").replace("'", "")
 
     //the ViewHolder class
@@ -68,6 +72,7 @@ class GameSolutionsRecyclerAdapter(private val solutions : Collection<String>, p
             item.findViewById<EditText>(R.id.editText).apply {
                 isClickable = data.isEditable
                 isFocusable = data.isEditable
+                isFocusableInTouchMode = data.isEditable
                 setText(data.text)
             }
         }
