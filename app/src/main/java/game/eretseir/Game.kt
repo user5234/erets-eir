@@ -223,6 +223,33 @@ class Game private constructor(gameCode: String) {
     }
 
     suspend fun calculatePoints() = coroutineScope {
+
+        /**
+         * function to calculate how many points the player gets in a specific category
+         */
+        fun pointsInCategory(category : Map.Entry<String, List<String>>, otherSolutions : Collection<Map<String, List<String>>>) : Int {
+            var points = 10
+            val categoryName = category.key
+            val categorySolutions = category.value
+            //iterating over each solution of the category
+            categorySolutions.forEach { solution ->
+                //another player submitted the same answer in this category
+                if (otherSolutions.any { otherPlayerSolutions -> otherPlayerSolutions[categoryName]!!.contains(solution) }) {
+                    points = max(points, 5)
+                    return@forEach
+                }
+                //another player submitted another solution in the same category
+                if (otherSolutions.any { otherPlayerSolutions -> otherPlayerSolutions[categoryName]!!.isNotEmpty() }) {
+                    points = max(points, 10)
+                    return@forEach
+                }
+                //no other player submitted any answer in this category
+                return 15
+            }
+            return points
+        }
+
+        //start of calculation
         val excludedData = PlayerData().toMap()
         //map of { each player's document reference : { category name : list of solutions } }
         val allSubmittedSolutions : Map<DocumentReference, Map<String, List<String>>> =
@@ -243,26 +270,7 @@ class Game private constructor(gameCode: String) {
             var points = 0L
             val otherSolutions = allSubmittedSolutions.filter { it != player }.values
             //iterating over each category of the solutions the player submitted
-            player.value.entries.forEach playerCategories@ { category ->
-                val categoryName = category.key
-                val categorySolutions = category.value
-                //iterating over each solution of the category
-                categorySolutions.forEach categorySolutions@ { solution ->
-                    //another player submitted the same answer in this category
-                    if (otherSolutions.any { otherPlayerSolutions -> otherPlayerSolutions[categoryName]!!.contains(solution) }) {
-                        points = max(points, 5)
-                        return@categorySolutions
-                    }
-                    //another player submitted another solution in the same category
-                    if (otherSolutions.any { otherPlayerSolutions -> otherPlayerSolutions[categoryName]!!.isNotEmpty() }) {
-                        points = max(points, 10)
-                        return@categorySolutions
-                    }
-                    //no other player submitted any answer in this category
-                    points = 15
-                    return@playerCategories
-                }
-            }
+            player.value.entries.forEach { category -> points += pointsInCategory(category, otherSolutions) }
             batch.update(player.key,
                 mapOf(
                     "points" to FieldValue.increment(points),
