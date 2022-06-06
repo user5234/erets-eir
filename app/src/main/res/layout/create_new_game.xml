@@ -75,7 +75,7 @@
             android:textColor="@color/white"
             android:textSize="20sp" />
 
-        <game.eretseir.BetterRadioGroup
+        <gal.libs.betterradiogroup.BetterRadioGroup
             android:id="@+id/maxPlayersRadioGroup"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -103,7 +103,7 @@
             android:textColor="@color/white"
             android:textSize="20sp" />
 
-        <game.eretseir.BetterRadioGroup
+        <gal.libs.betterradiogroup.BetterRadioGroup
             android:id="@+id/roundsAmountRadioGroup"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"

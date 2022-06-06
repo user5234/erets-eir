@@ -7,7 +7,7 @@
     android:background="@color/background"
     tools:context=".lobby.LobbyActivity">
 
-    <game.eretseir.BouncyRecyclerView
+    <gal.libs.bouncyrecyclerview.BouncyRecyclerView
         android:id="@+id/usersRecyclerView"
         android:layout_width="320dp"
         android:layout_height="match_parent"
@@ -31,7 +31,7 @@
         app:layout_constraintStart_toEndOf="@+id/usersRecyclerView"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <game.eretseir.ThemeButton
+    <gal.libs.themebutton.ThemeButton
         android:id="@+id/startButton"
         android:layout_width="150dp"
         android:layout_height="150dp"

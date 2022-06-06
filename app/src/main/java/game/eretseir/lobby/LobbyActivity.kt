@@ -14,6 +14,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.ListenerRegistration
+import gal.libs.fullscreenactivity.FullScreenActivity
 import game.eretseir.*
 import game.eretseir.databinding.LettersWheelBinding
 import game.eretseir.databinding.LobbyActivityBinding

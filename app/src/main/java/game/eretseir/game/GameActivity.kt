@@ -12,6 +12,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.ListenerRegistration
+import gal.libs.fullscreenactivity.FullScreenActivity
 import game.eretseir.*
 import game.eretseir.databinding.GameActivityBinding
 import game.eretseir.databinding.GameSolutionsRowBinding

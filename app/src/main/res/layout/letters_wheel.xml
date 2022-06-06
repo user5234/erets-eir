@@ -18,7 +18,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <game.eretseir.lobby.LettresWheel
+        <gal.libs.letterswheel.LettresWheel
             android:id="@+id/letters_wheel"
             android:layout_width="0dp"
             android:layout_height="0dp"

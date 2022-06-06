@@ -19,7 +19,7 @@
         android:layout_height="match_parent"
         android:elevation="100dp" />
 
-    <game.eretseir.BouncyRecyclerView
+    <gal.libs.bouncyrecyclerview.BouncyRecyclerView
         android:id="@+id/usersRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"

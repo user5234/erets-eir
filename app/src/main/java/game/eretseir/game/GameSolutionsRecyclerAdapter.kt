@@ -10,7 +10,7 @@ import android.widget.EditText
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
-import game.eretseir.BouncyRecyclerView
+import gal.libs.bouncyrecyclerview.BouncyRecyclerView
 import game.eretseir.R
 
 class GameSolutionsRecyclerAdapter(private val solutions : Collection<String>, private val submittedAnswers : MutableCollection<String>) : RecyclerView.Adapter<GameSolutionsRecyclerAdapter.ViewHolder>() {

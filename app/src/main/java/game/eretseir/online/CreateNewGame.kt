@@ -11,7 +11,7 @@ import android.widget.ProgressBar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.doOnLayout
-import game.eretseir.BetterRadioGroup
+import gal.libs.betterradiogroup.BetterRadioGroup
 import game.eretseir.Game
 import game.eretseir.R
 import game.eretseir.databinding.RadioButtonBinding

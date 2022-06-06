@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
-import game.eretseir.BouncyRecyclerView
+import gal.libs.bouncyrecyclerview.BouncyRecyclerView
 import game.eretseir.R
 
 class UsersRecyclerAdapter(private val admin : String) : RecyclerView.Adapter<UsersRecyclerAdapter.ViewHolder>() {

@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
-import game.eretseir.FullScreenActivity
+import gal.libs.fullscreenactivity.FullScreenActivity
 import game.eretseir.R
 import game.eretseir.databinding.OnlineActivityBinding
 

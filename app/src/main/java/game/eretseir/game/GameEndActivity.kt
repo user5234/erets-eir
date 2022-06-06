@@ -10,7 +10,7 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
-import game.eretseir.FullScreenActivity
+import gal.libs.fullscreenactivity.FullScreenActivity
 import game.eretseir.Game
 import game.eretseir.R
 import game.eretseir.databinding.GameEndActivityBinding

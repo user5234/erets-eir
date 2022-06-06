@@ -20,7 +20,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-    <game.eretseir.BouncyRecyclerView
+    <gal.libs.bouncyrecyclerview.BouncyRecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"

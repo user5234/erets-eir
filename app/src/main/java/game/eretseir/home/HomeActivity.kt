@@ -5,7 +5,7 @@ import android.os.Bundle
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
-import game.eretseir.FullScreenActivity
+import gal.libs.fullscreenactivity.FullScreenActivity
 import game.eretseir.auth
 import game.eretseir.databinding.HomeActivityBinding
 import game.eretseir.online.OnlineActivity
