@@ -228,7 +228,7 @@ class Game private constructor(gameCode: String) {
          * function to calculate how many points the player gets in a specific category
          */
         fun pointsInCategory(category : Map.Entry<String, List<String>>, otherSolutions : Collection<Map<String, List<String>>>) : Int {
-            var points = 10
+            var points = 0
             val categoryName = category.key
             val categorySolutions = category.value
             //iterating over each solution of the category
@@ -251,7 +251,7 @@ class Game private constructor(gameCode: String) {
 
         //start of calculation
         val excludedData = PlayerData().toMap()
-        //map of { each player's document reference : { category name : list of solutions } }
+        //map of { each player's document reference : map of { category name : list of solutions } }
         val allSubmittedSolutions : Map<DocumentReference, Map<String, List<String>>> =
             playersFsRef.get().await()
                 .documents
