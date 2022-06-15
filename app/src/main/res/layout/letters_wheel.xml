@@ -22,7 +22,6 @@
             android:id="@+id/letters_wheel"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:letters="א,ב,ג,ד,ה,ו,ז,ח,ט,י,כ,ל,מ,נ,ס,ע,פ,צ,ק,ר,ש,ת"
             app:layout_constraintDimensionRatio="1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHeight_percent="0.8"

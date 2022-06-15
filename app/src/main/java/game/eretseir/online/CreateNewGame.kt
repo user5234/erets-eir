@@ -15,22 +15,13 @@ import gal.libs.betterradiogroup.BetterRadioGroup
 import game.eretseir.Game
 import game.eretseir.R
 import game.eretseir.databinding.RadioButtonBinding
+import game.eretseir.game.GameActivity
 import game.eretseir.home.connectedToRTDB
-import game.eretseir.lobby.LobbyActivity
 import game.eretseir.removeWithAnimation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.random.Random
-
-private fun randomString(size: Int = 6): String {
-    val letters = ('A'..'Z').toList()
-    return (0 until size)
-        .toList()
-        .map { Random(System.nanoTime()).nextInt(0, letters.size) }
-        .map { i -> letters[i] }
-        .joinToString("")
-}
 
 class CreateNewGame : ConstraintLayout {
 
@@ -110,7 +101,7 @@ class CreateNewGame : ConstraintLayout {
             //go to the lobby activity
             post {
                 findViewById<View>(R.id.returnImageButton).performClick()
-                Intent(context, LobbyActivity::class.java).apply {
+                Intent(context, GameActivity::class.java).apply {
                     putExtra("gameCode", gameCode)
                     putExtra("userName", userName)
                     putExtra("admin", userName)
@@ -120,5 +111,14 @@ class CreateNewGame : ConstraintLayout {
                 }
             }
         }
+    }
+
+    private fun randomString(size: Int = 6): String {
+        val letters = ('A'..'Z').toList()
+        return (0 until size)
+            .toList()
+            .map { Random(System.nanoTime()).nextInt(0, letters.size) }
+            .map { i -> letters[i] }
+            .joinToString("")
     }
 }

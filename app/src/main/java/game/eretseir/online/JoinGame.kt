@@ -14,8 +14,8 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.doOnLayout
 import game.eretseir.Game
 import game.eretseir.R
+import game.eretseir.game.GameActivity
 import game.eretseir.home.connectedToRTDB
-import game.eretseir.lobby.LobbyActivity
 import game.eretseir.removeWithAnimation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -101,7 +101,7 @@ class JoinGame : ConstraintLayout {
             //go to lobby
             post {
                 findViewById<View>(R.id.returnImageButton).performClick()
-                Intent(context, LobbyActivity::class.java).apply {
+                Intent(context, GameActivity::class.java).apply {
                     putExtra("gameCode", gameCode)
                     putExtra("userName", userName)
                     putExtra("admin", game.data!!.admin)

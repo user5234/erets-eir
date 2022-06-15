@@ -1,26 +1,32 @@
-package game.eretseir.lobby
+package game.eretseir.game.fragments
 
-import android.content.Intent
+import android.content.Context
 import android.os.Bundle
-import android.view.View.INVISIBLE
-import android.view.View.VISIBLE
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
 import android.view.animation.AnimationUtils
 import android.widget.Button
-import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction.TRANSIT_FRAGMENT_FADE
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.ListenerRegistration
-import gal.libs.fullscreenactivity.FullScreenActivity
-import game.eretseir.*
+import game.eretseir.Game
+import game.eretseir.R
 import game.eretseir.databinding.LettersWheelBinding
-import game.eretseir.databinding.LobbyActivityBinding
+import game.eretseir.databinding.LobbyFragmentBinding
 import game.eretseir.game.GameActivity
 import game.eretseir.home.addOnDisconnectListener
 import game.eretseir.home.removeOnDisconnectListener
+import game.eretseir.game.adapters.UsersPointsRecyclerAdapter
+import game.eretseir.game.adapters.UsersRecyclerAdapter
+import game.eretseir.realtimeDatabase
+import game.eretseir.showAlert
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
@@ -30,63 +36,47 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class LobbyActivity : FullScreenActivity() {
+class LobbyFragment : Fragment() {
 
-    companion object {
-        lateinit var instance : LobbyActivity; private set
-        lateinit var scope : LifecycleCoroutineScope
-    }
-
-    //this value tells whether this activity is from a game that is already running,
-    //or that this is a lobby of a game that hasn't started
-    private var isFromGame : Boolean = false
-    private var rounds : Int = 0
-
-    private lateinit var binding : LobbyActivityBinding
-    private lateinit var gameCode : String
-    private lateinit var userName : String
-    private lateinit var admin : String
-    private lateinit var game : Game
+    private lateinit var gameActivity : GameActivity
+    private lateinit var binding : LobbyFragmentBinding
     private lateinit var disconnectListener : () -> Unit
     private lateinit var kickedListener : ListenerRegistration
     private lateinit var adminLeaveListener : ListenerRegistration
     private lateinit var gameStartListener : ListenerRegistration
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        gameActivity = context as GameActivity
+    }
 
-        instance = this
-        scope = lifecycleScope
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = LobbyFragmentBinding.inflate(layoutInflater, container, false)
+        return binding.root
+    }
 
-        isFromGame = intent.extras?.get("isFromGame") as Boolean
-        gameCode = intent.extras?.get("gameCode") as String
-        userName = intent.extras?.get("userName") as String
-        admin = intent.extras?.get("admin") as String
-        rounds = intent.extras?.get("roundsLeft") as Int
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        game = Game.fromExistingGame(gameCode)
+        binding.onlineButton.setOnClickListener { gameActivity.onBackPressed() }
 
-        binding = LobbyActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        
-        binding.onlineButton.setOnClickListener { onBackPressed() }
-
+        //-------------------------------------------------------------------------adding players to the recyclerview-----------------------------------------------------
         //not from existing game (was just created)
-        if (!isFromGame) {
-            binding.gameCodeTextView.text = getString(R.string.lobbyGameCode, gameCode)
-            val recyclerAdapter = UsersRecyclerAdapter(admin)
+        if (!gameActivity.isFromGame) {
+            binding.gameCodeTextView.text = getString(R.string.lobbyGameCode, gameActivity.gameCode)
+            val recyclerAdapter = UsersRecyclerAdapter(gameActivity.admin, gameActivity.userName)
             val players = recyclerAdapter.players
-            players.add(userName)
+            players.add(gameActivity.userName)
             binding.usersRecyclerView.adapter = recyclerAdapter
 
-            scope.launch {
+            lifecycleScope.launch {
                 //when another player leaves or joins the lobby
                 //the flow sends all the players when connecting to it so no need for
                 //retrieving the players separately when entering the lobby
                 //the flow will be cancelled when the activity finishes
-                usersFlow(gameCode)
+                usersFlow(gameActivity.gameCode)
                     .cancellable()
-                    .filter { it.first != userName }
+                    .filter { it.first != gameActivity.userName }
                     .collectLatest {
                         //a player joined
                         if (it.second) {
@@ -99,10 +89,10 @@ class LobbyActivity : FullScreenActivity() {
                             val removedElement = players.removeAt(removedIndex)
                             recyclerAdapter.notifyItemRemoved(removedIndex)
                             //the admin left
-                            if (removedElement == admin) {
-                                cancelAsyncStuff()
+                            if (removedElement == gameActivity.admin) {
+                                cancelStuff()
                                 showAlert(layoutInflater, binding.root, true, "המלך סגר את המשחק אחי", "חזור") {
-                                    onBackPressed()
+                                    gameActivity.onBackPressed()
                                 }
                                 cancel()
                             }
@@ -112,13 +102,13 @@ class LobbyActivity : FullScreenActivity() {
         }
         //is from existing game
         else {
-            binding.gameCodeTextView.text = getString(R.string.roundsLeft, rounds.toString())
-            val recyclerAdapter = UsersPointsRecyclerAdapter(admin, userName)
+            binding.gameCodeTextView.text = getString(R.string.roundsLeft, gameActivity.rounds.toString())
+            val recyclerAdapter = UsersPointsRecyclerAdapter(gameActivity.admin, gameActivity.userName)
             val players = recyclerAdapter.players
             binding.usersRecyclerView.adapter = recyclerAdapter
-            scope.launch {
+            lifecycleScope.launch {
                 players.putAll(
-                    game.playersFsRef
+                    gameActivity.game.playersFsRef
                         .get()
                         .await()
                         .documents
@@ -127,10 +117,10 @@ class LobbyActivity : FullScreenActivity() {
                         .associate { it.id to Game.PlayerData.fromMap(it.data!!).points.toInt() }
                 )
                 //we have not submitted answers in time
-                if (userName !in players.keys) {
-                    cancelAsyncStuff()
+                if (gameActivity.userName !in players.keys) {
+                    cancelStuff()
                     showAlert(layoutInflater, binding.root, true, "מצטער אחי הייתה בעיה עם השרת", "חזור") {
-                        onBackPressed()
+                        gameActivity.onBackPressed()
                     }
                     return@launch
                 }
@@ -138,61 +128,63 @@ class LobbyActivity : FullScreenActivity() {
             }
         }
 
-        if (admin == userName) {
-            binding.waitForAdminTextView.visibility = INVISIBLE
+        //show the start button if admin
+        if (gameActivity.admin == gameActivity.userName) {
+            binding.waitForAdminTextView.visibility = View.INVISIBLE
             binding.startButton.apply {
-                visibility = VISIBLE
+                visibility = View.VISIBLE
                 action = { showLettersWheel() }
             }
         }
 
-        kickedListener = game.playersFsRef
-            .whereEqualTo(FieldPath.documentId(), userName)
+        //-------------------------------------------------------------------------------------listeners-----------------------------------------------------------------
+        kickedListener = gameActivity.game.playersFsRef
+            .whereEqualTo(FieldPath.documentId(), gameActivity.userName)
             .addSnapshotListener { value, error ->
                 //an error occurred
                 if (error != null) {
-                    cancelAsyncStuff()
+                    cancelStuff()
                     showAlert(layoutInflater, binding.root, true, "מצטער אחי הייתה בעיה עם השרת", "חזור") {
-                        onBackPressed()
+                        gameActivity.onBackPressed()
                     }
                     return@addSnapshotListener
                 }
                 //you were kicked
                 if (value?.isEmpty == true) {
-                    cancelAsyncStuff()
+                    cancelStuff()
                     showAlert(layoutInflater, binding.root, true, "הקיקו אותך או שיש לך אינטרנט איטי ולכן הועפת", "חזור") {
-                        onBackPressed()
+                        gameActivity.onBackPressed()
                     }
                 }
             }
 
-        adminLeaveListener = game.playersFsRef
-            .whereEqualTo(FieldPath.documentId(), admin)
+        adminLeaveListener = gameActivity.game.playersFsRef
+            .whereEqualTo(FieldPath.documentId(), gameActivity.admin)
             .addSnapshotListener { value, error ->
                 //an error occurred
                 if (error != null) {
-                    cancelAsyncStuff()
+                    cancelStuff()
                     showAlert(layoutInflater, binding.root, true, "מצטער אחי הייתה בעיה עם השרת", "חזור") {
-                        onBackPressed()
+                        gameActivity.onBackPressed()
                     }
                     return@addSnapshotListener
                 }
                 //the admin left
                 if (value?.isEmpty == true) {
-                    cancelAsyncStuff()
+                    cancelStuff()
                     showAlert(layoutInflater, binding.root, true, "המלך סגר את המשחק אחי", "חזור") {
-                        onBackPressed()
+                        gameActivity.onBackPressed()
                     }
                 }
             }
 
-        gameStartListener = game
+        gameStartListener = gameActivity.game
             .addSnapshotListener { snapshot, data, error ->
                 //an error occurred
                 if (error != null) {
-                    cancelAsyncStuff()
+                    cancelStuff()
                     showAlert(layoutInflater, binding.root, true, "מצטער אחי הייתה בעיה עם השרת", "חזור") {
-                        onBackPressed()
+                        gameActivity.onBackPressed()
                     }
                     return@addSnapshotListener
                 }
@@ -206,14 +198,14 @@ class LobbyActivity : FullScreenActivity() {
 
                 //firestore charged me for another read :(
                 if (data!!.isRunning) {
-                    enterGame(data.letter)
+                    parentFragmentManager.beginTransaction().setTransition(TRANSIT_FRAGMENT_FADE).replace(R.id.fragmentContainer, GameFragment()).commit()
                 }
-        }
+            }
 
         disconnectListener = {
-            cancelAsyncStuff()
+            cancelStuff()
             showAlert(layoutInflater, binding.root, true, "מצטער אחי אבל אין לך אינטרנט", "חזור") {
-                onBackPressed()
+                gameActivity.onBackPressed()
             }
         }
         addOnDisconnectListener(true, disconnectListener)
@@ -222,35 +214,21 @@ class LobbyActivity : FullScreenActivity() {
     private fun showLettersWheel() {
         LettersWheelBinding.inflate(layoutInflater, binding.root, true).apply {
             //animating the pop up
-            val popUpAnim = AnimationUtils.loadAnimation(this@LobbyActivity, R.anim.view_popup)
+            val popUpAnim = AnimationUtils.loadAnimation(gameActivity, R.anim.view_popup)
             container.startAnimation(popUpAnim)
             root.startAnimation(AlphaAnimation(0F, 1F).apply { duration = 500 })
+            lettersWheel.letters = gameActivity.lettersLeft
             //spin the wheel when clicking the button
             spinButton.setOnClickListener {
                 it as Button
-                val letter = lettersWheel.spin()
-                lettersWheel.letters.remove(letter)
+                gameActivity.letter = lettersWheel.spin()
+                gameActivity.lettersLeft.remove(gameActivity.letter)
                 it.setOnClickListener {  }
                 it.postDelayed({
                     it.text = "התחל משחק"
-                    it.setOnClickListener { game.startGame(letter) }
+                    it.setOnClickListener { gameActivity.game.startGame(gameActivity.letter) } // will cause the start of the game from the gameStartListener
                 }, 6000)
             }
-        }
-    }
-
-    private fun enterGame(letter : String) {
-        cancelAsyncStuff()
-        finish()
-        Intent(this, GameActivity::class.java).apply {
-            putExtra("gameCode", gameCode)
-            putExtra("userName", userName)
-            putExtra("admin", admin)
-            putExtra("letter", letter)
-            putExtra("roundsLeft", rounds)
-            startActivity(this)
-            cancelAsyncStuff()
-            finish()
         }
     }
 
@@ -270,12 +248,8 @@ class LobbyActivity : FullScreenActivity() {
             }
 
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
-
             override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-
-            override fun onCancelled(error: DatabaseError) {
-                //well fuck
-            }
+            override fun onCancelled(error: DatabaseError) {}
         }
 
         val usersReference = realtimeDatabase.getReference("/online/$gameCode/")
@@ -284,17 +258,15 @@ class LobbyActivity : FullScreenActivity() {
         awaitClose { usersReference.removeEventListener(childListener) }
     }
 
-    private fun cancelAsyncStuff() {
+    private fun cancelStuff() {
         removeOnDisconnectListener(disconnectListener)
         adminLeaveListener.remove()
         kickedListener.remove()
         gameStartListener.remove()
     }
 
-    override fun onBackPressed() {
-        game.removePlayer(userName)
-        cancelAsyncStuff()
-        finish()
-        super.onBackPressed()
+    override fun onDestroy() {
+        cancelStuff()
+        super.onDestroy()
     }
 }

@@ -1,20 +1,21 @@
-package game.eretseir.game
+package game.eretseir.game.fragments
 
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import android.view.View.INVISIBLE
-import android.view.View.VISIBLE
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.cardview.widget.CardView
-import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import gal.libs.fullscreenactivity.FullScreenActivity
 import game.eretseir.Game
 import game.eretseir.R
-import game.eretseir.databinding.GameEndActivityBinding
-import game.eretseir.lobby.UsersPointsRecyclerAdapter
+import game.eretseir.databinding.FinalScoresFragmentBinding
+import game.eretseir.game.GameActivity
+import game.eretseir.game.adapters.UsersPointsRecyclerAdapter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.launch
@@ -25,44 +26,30 @@ import nl.dionsegijn.konfetti.core.Spread
 import nl.dionsegijn.konfetti.core.emitter.Emitter
 import java.util.concurrent.TimeUnit
 
-class GameEndActivity : FullScreenActivity() {
+class FinalScoresFragment : Fragment() {
 
-    companion object {
-        lateinit var instance : GameEndActivity
-        lateinit var scope : LifecycleCoroutineScope
+    private lateinit var gameActivity : GameActivity
+    private lateinit var binding : FinalScoresFragmentBinding
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        gameActivity = context as GameActivity
     }
 
-    private lateinit var binding : GameEndActivityBinding
-    private lateinit var gameCode : String
-    private lateinit var userName : String
-    private lateinit var admin : String
-    private lateinit var game : Game
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = FinalScoresFragmentBinding.inflate(layoutInflater, container, false)
+        return binding.root
+    }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        instance = this
-        scope = lifecycleScope
-
-        gameCode = intent.extras?.get("gameCode") as String
-        userName = intent.extras?.get("userName") as String
-        admin = intent.extras?.get("admin") as String
-
-        game = Game.fromExistingGame(gameCode)
-
-        binding = GameEndActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        binding.winnerPlayer.root.visibility = INVISIBLE
-        binding.onlineButton.setOnClickListener { onBackPressed() }
-
-        val recyclerAdapter = UsersPointsRecyclerAdapter(admin, userName)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val recyclerAdapter = UsersPointsRecyclerAdapter(gameActivity.admin, gameActivity.userName)
         val players = recyclerAdapter.players
         binding.usersRecyclerView.adapter = recyclerAdapter
 
-        scope.launch {
+        lifecycleScope.launch {
             var bestPlayer : Pair<String, Long>
-            val flow = game.playersFsRef
+            val flow = gameActivity.game.playersFsRef
                 .get()
                 .await()
                 .documents
@@ -78,23 +65,23 @@ class GameEndActivity : FullScreenActivity() {
             var index = 0
             //animate the winner
             binding.winnerPlayer.root.apply {
-                visibility = VISIBLE
+                visibility = View.VISIBLE
                 findViewById<TextView>(R.id.userNameTextView).text = bestPlayer.first
                 findViewById<TextView>(R.id.pointsTextView).text = "${bestPlayer.second}"
                 findViewById<CardView>(R.id.cardView).setCardBackgroundColor(Color.rgb(229, 184, 11))
-                if (bestPlayer.first == admin)
-                    findViewById<View>(R.id.leaderCrownImageView).visibility = VISIBLE
-                startAnimation(AnimationUtils.loadAnimation(this@GameEndActivity, R.anim.winner_animation))
+                if (bestPlayer.first == gameActivity.admin)
+                    findViewById<View>(R.id.leaderCrownImageView).visibility = View.VISIBLE
+                startAnimation(AnimationUtils.loadAnimation(gameActivity, R.anim.winner_animation))
             }
             //add the other players
             flow.collect {
-                    delay(1000)
-                    players[it.first] = it.second
-                    recyclerAdapter.notifyItemInserted(index)
-                    binding.usersRecyclerView.scrollToPosition(index)
-                    index++
-                }
-            if (bestPlayer.first != userName)
+                delay(1000)
+                players[it.first] = it.second
+                recyclerAdapter.notifyItemInserted(index)
+                binding.usersRecyclerView.scrollToPosition(index)
+                index++
+            }
+            if (bestPlayer.first != gameActivity.userName)
                 return@launch
             //weeeee are the championsssss
             //start konfetti
@@ -120,10 +107,5 @@ class GameEndActivity : FullScreenActivity() {
                 )
             )
         }
-    }
-
-    override fun onBackPressed() {
-        game.removePlayer(userName)
-        super.onBackPressed()
     }
 }

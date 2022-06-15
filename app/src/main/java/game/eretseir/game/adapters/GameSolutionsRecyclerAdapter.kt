@@ -1,4 +1,4 @@
-package game.eretseir.game
+package game.eretseir.game.adapters
 
 
 import android.graphics.Color
@@ -21,32 +21,7 @@ class GameSolutionsRecyclerAdapter(private val solutions : Collection<String>, p
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.game_solutions_list_item, parent, false))
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-
-        val holderData = mData[position]
-        holder.bindData(holderData)
-
-        if (!holderData.isEditable)
-            return
-
-        holder.item.findViewById<EditText>(R.id.editText).apply {
-            holderData.watcher = doOnTextChanged { textCharSequence, _, _, _ ->
-                val text = textCharSequence.toString()
-                solutions.forEach { solution ->
-                    if (solution.parse() == text.parse() && solution !in submittedAnswers) {
-                        submittedAnswers.add(solution)
-                        holderData.let { it.isEditable = false; it.text = text }
-                        holder.bindData(holderData)
-                        mData.add(HolderData())
-                        notifyItemInserted(itemCount)
-                        recyclerViews.forEach { it.post { it.smoothScrollToPosition(itemCount - 1) } }
-                        return@doOnTextChanged
-                    }
-                }
-            }
-            requestFocus()
-        }
-    }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bindData(mData[position])
 
     override fun getItemCount(): Int = mData.size
 
@@ -63,7 +38,7 @@ class GameSolutionsRecyclerAdapter(private val solutions : Collection<String>, p
     private fun String.parse() = replace("-", " ").replace("'", "")
 
     //the ViewHolder class
-    inner class ViewHolder(internal val item : View) : BouncyRecyclerView.ViewHolder(item) {
+    inner class ViewHolder(private val item : View) : BouncyRecyclerView.ViewHolder(item) {
 
         internal fun bindData(data : HolderData) {
             item.findViewById<EditText>(R.id.editText).apply { removeTextChangedListener(data.watcher) }
@@ -74,6 +49,25 @@ class GameSolutionsRecyclerAdapter(private val solutions : Collection<String>, p
                 isFocusable = data.isEditable
                 isFocusableInTouchMode = data.isEditable
                 setText(data.text)
+            }
+            if (!data.isEditable)
+                return
+            item.findViewById<EditText>(R.id.editText).apply {
+                data.watcher = doOnTextChanged { textCharSequence, _, _, _ ->
+                    val text = textCharSequence.toString()
+                    solutions.forEach { solution ->
+                        if (solution.parse() == text.parse() && solution !in submittedAnswers) {
+                            submittedAnswers.add(solution)
+                            data.let { it.isEditable = false; it.text = text }
+                            bindData(data)
+                            mData.add(HolderData())
+                            notifyItemInserted(itemCount)
+                            recyclerViews.forEach { it.post { it.smoothScrollToPosition(itemCount - 1) } }
+                            return@doOnTextChanged
+                        }
+                    }
+                }
+                requestFocus()
             }
         }
     }
