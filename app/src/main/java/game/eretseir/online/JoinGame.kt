@@ -14,7 +14,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.doOnLayout
 import game.eretseir.Game
 import game.eretseir.R
-import game.eretseir.game.GameActivity
+import game.eretseir.game.activities.GameActivity
 import game.eretseir.home.connectedToRTDB
 import game.eretseir.removeWithAnimation
 import kotlinx.coroutines.CoroutineScope
@@ -72,7 +72,7 @@ class JoinGame : ConstraintLayout {
         val gameCode = findViewById<EditText>(R.id.gameCodeEditText).text.toString()
         //now the real shit
         scope.launch {
-            if (!connectedToRTDB)
+            if (!connectedToRTDB.value!!)
                 return@launch
             //game doesn't exist
             if (!Game.exists(gameCode)) {
@@ -101,14 +101,12 @@ class JoinGame : ConstraintLayout {
             //go to lobby
             post {
                 findViewById<View>(R.id.returnImageButton).performClick()
-                Intent(context, GameActivity::class.java).apply {
-                    putExtra("gameCode", gameCode)
-                    putExtra("userName", userName)
-                    putExtra("admin", game.data!!.admin)
-                    putExtra("roundsLeft", game.data!!.rounds.toInt())
-                    putExtra("isFromGame", false)
-                    OnlineActivity.instance.startActivity(this)
-                }
+                GameActivity.gameCode = gameCode
+                GameActivity.userName = userName
+                GameActivity.admin = game.data!!.admin
+                GameActivity.rounds = game.data!!.rounds.toInt()
+                GameActivity.isFromGame = false
+                context.startActivity(Intent(context, GameActivity::class.java))
             }
         }
     }

@@ -14,7 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import game.eretseir.Game
 import game.eretseir.R
 import game.eretseir.databinding.FinalScoresFragmentBinding
-import game.eretseir.game.GameActivity
+import game.eretseir.game.activities.GameActivity
 import game.eretseir.game.adapters.UsersPointsRecyclerAdapter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asFlow
@@ -43,13 +43,13 @@ class FinalScoresFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val recyclerAdapter = UsersPointsRecyclerAdapter(gameActivity.admin, gameActivity.userName)
+        val recyclerAdapter = UsersPointsRecyclerAdapter(GameActivity.admin, GameActivity.userName)
         val players = recyclerAdapter.players
         binding.usersRecyclerView.adapter = recyclerAdapter
 
         lifecycleScope.launch {
             var bestPlayer : Pair<String, Long>
-            val flow = gameActivity.game.playersFsRef
+            val flow = GameActivity.game.playersFsRef
                 .get()
                 .await()
                 .documents
@@ -69,7 +69,7 @@ class FinalScoresFragment : Fragment() {
                 findViewById<TextView>(R.id.userNameTextView).text = bestPlayer.first
                 findViewById<TextView>(R.id.pointsTextView).text = "${bestPlayer.second}"
                 findViewById<CardView>(R.id.cardView).setCardBackgroundColor(Color.rgb(229, 184, 11))
-                if (bestPlayer.first == gameActivity.admin)
+                if (bestPlayer.first == GameActivity.admin)
                     findViewById<View>(R.id.leaderCrownImageView).visibility = View.VISIBLE
                 startAnimation(AnimationUtils.loadAnimation(gameActivity, R.anim.winner_animation))
             }
@@ -81,7 +81,7 @@ class FinalScoresFragment : Fragment() {
                 binding.usersRecyclerView.scrollToPosition(index)
                 index++
             }
-            if (bestPlayer.first != gameActivity.userName)
+            if (bestPlayer.first != GameActivity.userName)
                 return@launch
             //weeeee are the championsssss
             //start konfetti

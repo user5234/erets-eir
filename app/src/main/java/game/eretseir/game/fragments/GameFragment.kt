@@ -7,42 +7,26 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.HorizontalScrollView
-import android.widget.ScrollView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.doOnLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction.TRANSIT_FRAGMENT_FADE
-import androidx.lifecycle.lifecycleScope
-import com.google.firebase.firestore.FieldPath
-import com.google.firebase.firestore.ListenerRegistration
+import androidx.fragment.app.viewModels
 import game.eretseir.*
 import game.eretseir.databinding.GameFragmentBinding
 import game.eretseir.databinding.GameSolutionsRowBinding
-import game.eretseir.game.GameActivity
+import game.eretseir.game.activities.GameActivity
 import game.eretseir.game.adapters.GameSolutionsRecyclerAdapter
-import game.eretseir.home.addOnDisconnectListener
-import game.eretseir.home.removeOnDisconnectListener
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withTimeoutOrNull
-import java.util.*
-import kotlin.concurrent.timerTask
+import game.eretseir.game.viewmodels.GameViewModel
 import kotlin.math.max
 
 
 class GameFragment : Fragment() {
 
-    private val playtime = 60
-    private val countdownSeconds = 3
-
-    private var playerSolutions = Game.SolutionsData() //the solutions the player will send
+    private val viewModel : GameViewModel by viewModels()
 
     private lateinit var gameActivity : GameActivity
     private lateinit var binding : GameFragmentBinding
-    private lateinit var timer: Timer
-    private lateinit var disconnectListener : () -> Unit
-    private lateinit var adminLeaveListener : ListenerRegistration
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -54,35 +38,21 @@ class GameFragment : Fragment() {
         return binding.root
     }
 
-    /**
-     * All the interesting stuff
-     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.entryScreenLetter.text = getString(R.string.gameLetter, gameActivity.letter)
-        binding.infoLetter.text = gameActivity.letter
+        binding.entryScreenLetter.text = getString(R.string.gameLetter, GameActivity.letter)
+        binding.infoLetter.text = GameActivity.letter
 
-        //Fetching the solutions from firestore and creating the rows for the game
-        lifecycleScope.launch {
-            var allSolutionsMap = mapOf<String, MutableList<String>>()
-            val result = withTimeoutOrNull(countdownSeconds * 1000L) {
-                allSolutionsMap = gameActivity.game.getSolutions(gameActivity.letter).toMapHebrew()
-            }
-            //If we timed out kick the player
-            result ?: run {
-                cancelStuff()
-                showAlert(layoutInflater, binding.root, true, "מצטער אחי לקח יותר מדי זמן לשרת להגיב", "חזור") {
-                    gameActivity.onBackPressed()
-                }
-                return@launch
-            }
+        viewModel.allSolutions().observe(viewLifecycleOwner) { allSolutions -> //map of categories: category name to its solutions
             //Creating the rows for the game
+            //used for the layout params
             var prevId: Int? = null
-            for (i in playerSolutions.toMapHebrew().entries) {
+            //iterating over the player solutions (The map that holds the data the player will submit)
+            viewModel.playerSolutions.toMapHebrew().entries.forEach { category -> //key is the name, value is the solutions
                 GameSolutionsRowBinding.inflate(layoutInflater, binding.gameSolutions, true).apply {
-                    recyclerView.adapter = GameSolutionsRecyclerAdapter(allSolutionsMap[i.key]!!, i.value)
-                    textView.text = i.key
+                    recyclerView.adapter = GameSolutionsRecyclerAdapter(allSolutions[category.key]!!, category.value) // category.value will change as the user submits his answers, so we use it later to send the solutions to tha database
+                    textView.text = category.key
                     val params = root.layoutParams as ConstraintLayout.LayoutParams
                     params.width = max(spToPx(170F, gameActivity), binding.scrollView.width / 8F).toInt()
                     if (prevId != null)
@@ -97,98 +67,45 @@ class GameFragment : Fragment() {
             binding.scrollView.doOnLayout { (it as HorizontalScrollView).fullScroll(View.FOCUS_RIGHT) }
         }
 
-        //if the admin leaves the game show an alert
-        adminLeaveListener = gameActivity.game.playersFsRef
-            .whereEqualTo(FieldPath.documentId(), gameActivity.admin)
-            .addSnapshotListener { value, error ->
-                //an error occurred
-                if (error != null) {
-                    cancelStuff()
-                    showAlert(layoutInflater, binding.root, true, "מצטער אחי הייתה בעיה עם השרת", "חזור") {
-                        gameActivity.onBackPressed()
-                    }
-                    return@addSnapshotListener
-                }
-                //the admin left
-                if (value?.isEmpty == true) {
-                    cancelStuff()
-                    showAlert(layoutInflater, binding.root, true, "המלך סגר את המשחק אחי", "חזור") {
-                        gameActivity.onBackPressed()
-                    }
-                }
+        viewModel.secondsLeft().observe(viewLifecycleOwner) { secondsLeft ->
+            val countDownAnim = AnimationUtils.loadAnimation(gameActivity, R.anim.countdown)
+            //update the timers
+            binding.infoTimer.text = "$secondsLeft"
+            if (secondsLeft > viewModel.playtime) {
+                binding.entryScreenCountdown.text = if (secondsLeft == viewModel.playtime + 1) "GO" else "${secondsLeft - viewModel.playtime - 1}"
+                binding.entryScreenCountdown.startAnimation(countDownAnim)
             }
-
-        //first 3 seconds are the countdown in the beginning,
-        //after that the next 30 seconds are for the game countdown,
-        //and after them 2 seconds where the player sends his answers and a screen is shown
-        //in a run call to encapsulate the seconds var and the countdown animation
-        var seconds = playtime + countdownSeconds + 2
-        val countDownAnim = AnimationUtils.loadAnimation(gameActivity, R.anim.countdown)
-        timer = Timer().apply {
-            scheduleAtFixedRate(timerTask {
-                seconds--
-                //update the countdown timer
-                view.post { binding.infoTimer.text = "$seconds" }
-                //showing the countdown for the entry screen
-                if (seconds > playtime) {
-                    view.post {
-                        binding.entryScreenCountdown.text = if (seconds == playtime + 1) "GO" else "${seconds - playtime - 1}"
-                        binding.entryScreenCountdown.startAnimation(countDownAnim)
-                    }
-                }
-                //starting
-                if (seconds == playtime) {
-                    view.post { binding.root.removeWithAnimation(binding.entryScreen) }
-                }
-                //game ended
-                if (seconds == 0) {
-                    //show ending screen
-                    binding.root.let { it.addWithAnimation(layoutInflater.inflate(R.layout.game_end_screen, it, false)) }
-                    gameActivity.closeKeyboard()
-                    view.post { binding.root.requestFocus() }
-                    //finish the game and send the data
-                    gameActivity.game.sendSolutions(gameActivity.userName, playerSolutions)
-                    //if admin, eng the game and wait 1 second for everyone to send their solutions
-                    //after that, give everyone points
-                    if (gameActivity.admin == gameActivity.userName) {
-                        lifecycleScope.launch {
-                            gameActivity.game.endGame().await()
-                            delay(1000)
-                            gameActivity.game.calculatePoints()
-                        }
-                    }
-                }
-                //go to lobby / final scores
-                if (seconds == -3) {
-                    cancel()
-                    //this was the last round
-                    if (gameActivity.rounds == 1) {
-                        parentFragmentManager.beginTransaction().setTransition(TRANSIT_FRAGMENT_FADE).replace(R.id.fragmentContainer, FinalScoresFragment()).commit()
-                        return@timerTask
-                    }
-                    //there are still some rounds left
-                    parentFragmentManager.beginTransaction().setTransition(TRANSIT_FRAGMENT_FADE).replace(R.id.fragmentContainer, LobbyFragment()).commit()
-                }
-            }, 1000, 1000)
+            //remove the countdown screen
+            if (secondsLeft == viewModel.playtime)
+                binding.root.removeWithAnimation(binding.entryScreen)
+            //the game ended
+            if (secondsLeft == 0) {
+                binding.root.let { it.addWithAnimation(layoutInflater.inflate(R.layout.game_end_screen, it, false)) }
+                gameActivity.closeKeyboard()
+                view.post { binding.root.requestFocus() }
+                return@observe
+            }
+            //the solutions were sent so go back to lobby or go to the final scores fragment
+            if (secondsLeft != -3)
+                return@observe
+            //there are still some rounds left
+            if (GameActivity.rounds != 1) {
+                parentFragmentManager.beginTransaction().setTransition(TRANSIT_FRAGMENT_FADE).replace(R.id.fragmentContainer, LobbyFragment()).commit()
+                return@observe
+            }
+            //this was the last round
+            parentFragmentManager.beginTransaction().setTransition(TRANSIT_FRAGMENT_FADE).replace(R.id.fragmentContainer, FinalScoresFragment()).commit()
         }
 
-        disconnectListener = {
-            cancelStuff()
-            showAlert(layoutInflater, binding.root, true, "מצטער אחי אבל אין לך אינטרנט", "חזור") {
-                gameActivity.onBackPressed()
-            }
-        }
-        addOnDisconnectListener(true, disconnectListener)
+        viewModel.adminLeft().observe(viewLifecycleOwner) { left -> if (left) somethingBadHappened("מצטער אחי המלך עזב") }
+
+        viewModel.error().observe(viewLifecycleOwner) { error -> somethingBadHappened(error) }
     }
 
-    private fun cancelStuff() {
-        removeOnDisconnectListener(disconnectListener)
-        adminLeaveListener.remove()
-        timer.cancel()
-    }
-
-    override fun onDestroy() {
-        cancelStuff()
-        super.onDestroy()
+    private fun somethingBadHappened(description: String) {
+        //stop listening to the data from the view model
+        viewModel.allLiveData().forEach { liveData -> liveData.removeObservers(viewLifecycleOwner) }
+        //show an alert with the description
+        showAlert(layoutInflater, binding.root, true, description, "חזור") { gameActivity.onBackPressed() }
     }
 }

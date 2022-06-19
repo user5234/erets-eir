@@ -12,7 +12,8 @@
         android:background="@drawable/double_border_opaque"
         android:elevation="10dp"
         android:paddingHorizontal="100dp"
-        android:visibility="visible">
+        android:clickable="true"
+        android:focusable="true">
 
         <TextView
             android:id="@+id/entryScreenLetter"

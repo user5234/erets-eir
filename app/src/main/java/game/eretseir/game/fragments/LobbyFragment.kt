@@ -20,9 +20,7 @@ import game.eretseir.Game
 import game.eretseir.R
 import game.eretseir.databinding.LettersWheelBinding
 import game.eretseir.databinding.LobbyFragmentBinding
-import game.eretseir.game.GameActivity
-import game.eretseir.home.addOnDisconnectListener
-import game.eretseir.home.removeOnDisconnectListener
+import game.eretseir.game.activities.GameActivity
 import game.eretseir.game.adapters.UsersPointsRecyclerAdapter
 import game.eretseir.game.adapters.UsersRecyclerAdapter
 import game.eretseir.realtimeDatabase
@@ -40,7 +38,6 @@ class LobbyFragment : Fragment() {
 
     private lateinit var gameActivity : GameActivity
     private lateinit var binding : LobbyFragmentBinding
-    private lateinit var disconnectListener : () -> Unit
     private lateinit var kickedListener : ListenerRegistration
     private lateinit var adminLeaveListener : ListenerRegistration
     private lateinit var gameStartListener : ListenerRegistration
@@ -62,11 +59,11 @@ class LobbyFragment : Fragment() {
 
         //-------------------------------------------------------------------------adding players to the recyclerview-----------------------------------------------------
         //not from existing game (was just created)
-        if (!gameActivity.isFromGame) {
-            binding.gameCodeTextView.text = getString(R.string.lobbyGameCode, gameActivity.gameCode)
-            val recyclerAdapter = UsersRecyclerAdapter(gameActivity.admin, gameActivity.userName)
+        if (!GameActivity.isFromGame) {
+            binding.gameCodeTextView.text = getString(R.string.lobbyGameCode, GameActivity.gameCode)
+            val recyclerAdapter = UsersRecyclerAdapter(GameActivity.admin, GameActivity.userName)
             val players = recyclerAdapter.players
-            players.add(gameActivity.userName)
+            players.add(GameActivity.userName)
             binding.usersRecyclerView.adapter = recyclerAdapter
 
             lifecycleScope.launch {
@@ -74,9 +71,9 @@ class LobbyFragment : Fragment() {
                 //the flow sends all the players when connecting to it so no need for
                 //retrieving the players separately when entering the lobby
                 //the flow will be cancelled when the activity finishes
-                usersFlow(gameActivity.gameCode)
+                usersFlow(GameActivity.gameCode)
                     .cancellable()
-                    .filter { it.first != gameActivity.userName }
+                    .filter { it.first != GameActivity.userName }
                     .collectLatest {
                         //a player joined
                         if (it.second) {
@@ -89,7 +86,7 @@ class LobbyFragment : Fragment() {
                             val removedElement = players.removeAt(removedIndex)
                             recyclerAdapter.notifyItemRemoved(removedIndex)
                             //the admin left
-                            if (removedElement == gameActivity.admin) {
+                            if (removedElement == GameActivity.admin) {
                                 cancelStuff()
                                 showAlert(layoutInflater, binding.root, true, "המלך סגר את המשחק אחי", "חזור") {
                                     gameActivity.onBackPressed()
@@ -102,13 +99,13 @@ class LobbyFragment : Fragment() {
         }
         //is from existing game
         else {
-            binding.gameCodeTextView.text = getString(R.string.roundsLeft, gameActivity.rounds.toString())
-            val recyclerAdapter = UsersPointsRecyclerAdapter(gameActivity.admin, gameActivity.userName)
+            binding.gameCodeTextView.text = getString(R.string.roundsLeft, GameActivity.rounds.toString())
+            val recyclerAdapter = UsersPointsRecyclerAdapter(GameActivity.admin, GameActivity.userName)
             val players = recyclerAdapter.players
             binding.usersRecyclerView.adapter = recyclerAdapter
             lifecycleScope.launch {
                 players.putAll(
-                    gameActivity.game.playersFsRef
+                    GameActivity.game.playersFsRef
                         .get()
                         .await()
                         .documents
@@ -117,7 +114,7 @@ class LobbyFragment : Fragment() {
                         .associate { it.id to Game.PlayerData.fromMap(it.data!!).points.toInt() }
                 )
                 //we have not submitted answers in time
-                if (gameActivity.userName !in players.keys) {
+                if (GameActivity.userName !in players.keys) {
                     cancelStuff()
                     showAlert(layoutInflater, binding.root, true, "מצטער אחי הייתה בעיה עם השרת", "חזור") {
                         gameActivity.onBackPressed()
@@ -129,7 +126,7 @@ class LobbyFragment : Fragment() {
         }
 
         //show the start button if admin
-        if (gameActivity.admin == gameActivity.userName) {
+        if (GameActivity.admin == GameActivity.userName) {
             binding.waitForAdminTextView.visibility = View.INVISIBLE
             binding.startButton.apply {
                 visibility = View.VISIBLE
@@ -138,8 +135,8 @@ class LobbyFragment : Fragment() {
         }
 
         //-------------------------------------------------------------------------------------listeners-----------------------------------------------------------------
-        kickedListener = gameActivity.game.playersFsRef
-            .whereEqualTo(FieldPath.documentId(), gameActivity.userName)
+        kickedListener = GameActivity.game.playersFsRef
+            .whereEqualTo(FieldPath.documentId(), GameActivity.userName)
             .addSnapshotListener { value, error ->
                 //an error occurred
                 if (error != null) {
@@ -158,8 +155,8 @@ class LobbyFragment : Fragment() {
                 }
             }
 
-        adminLeaveListener = gameActivity.game.playersFsRef
-            .whereEqualTo(FieldPath.documentId(), gameActivity.admin)
+        adminLeaveListener = GameActivity.game.playersFsRef
+            .whereEqualTo(FieldPath.documentId(), GameActivity.admin)
             .addSnapshotListener { value, error ->
                 //an error occurred
                 if (error != null) {
@@ -178,7 +175,7 @@ class LobbyFragment : Fragment() {
                 }
             }
 
-        gameStartListener = gameActivity.game
+        gameStartListener = GameActivity.game
             .addSnapshotListener { snapshot, data, error ->
                 //an error occurred
                 if (error != null) {
@@ -201,14 +198,6 @@ class LobbyFragment : Fragment() {
                     parentFragmentManager.beginTransaction().setTransition(TRANSIT_FRAGMENT_FADE).replace(R.id.fragmentContainer, GameFragment()).commit()
                 }
             }
-
-        disconnectListener = {
-            cancelStuff()
-            showAlert(layoutInflater, binding.root, true, "מצטער אחי אבל אין לך אינטרנט", "חזור") {
-                gameActivity.onBackPressed()
-            }
-        }
-        addOnDisconnectListener(true, disconnectListener)
     }
 
     private fun showLettersWheel() {
@@ -221,12 +210,12 @@ class LobbyFragment : Fragment() {
             //spin the wheel when clicking the button
             spinButton.setOnClickListener {
                 it as Button
-                gameActivity.letter = lettersWheel.spin()
-                gameActivity.lettersLeft.remove(gameActivity.letter)
+                GameActivity.letter = lettersWheel.spin()
+                gameActivity.lettersLeft.remove(GameActivity.letter)
                 it.setOnClickListener {  }
                 it.postDelayed({
                     it.text = "התחל משחק"
-                    it.setOnClickListener { gameActivity.game.startGame(gameActivity.letter) } // will cause the start of the game from the gameStartListener
+                    it.setOnClickListener { GameActivity.game.startGame(GameActivity.letter) } // will cause the start of the game from the gameStartListener
                 }, 6000)
             }
         }
@@ -259,7 +248,6 @@ class LobbyFragment : Fragment() {
     }
 
     private fun cancelStuff() {
-        removeOnDisconnectListener(disconnectListener)
         adminLeaveListener.remove()
         kickedListener.remove()
         gameStartListener.remove()

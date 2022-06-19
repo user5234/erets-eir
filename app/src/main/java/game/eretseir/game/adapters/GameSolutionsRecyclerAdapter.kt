@@ -13,6 +13,9 @@ import com.google.android.material.card.MaterialCardView
 import gal.libs.bouncyrecyclerview.BouncyRecyclerView
 import game.eretseir.R
 
+/**
+ * @param submittedAnswers will be changes as the player submits new answers
+ */
 class GameSolutionsRecyclerAdapter(private val solutions : Collection<String>, private val submittedAnswers : MutableCollection<String>) : RecyclerView.Adapter<GameSolutionsRecyclerAdapter.ViewHolder>() {
 
     private val mData = mutableListOf(HolderData())

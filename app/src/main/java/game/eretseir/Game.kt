@@ -149,6 +149,7 @@ class Game private constructor(gameCode: String) {
             if (snapshot == null) {
                 action(null, null, error)
             } else {
+                println(snapshot.data)
                 action(snapshot, GameData.fromMap(snapshot.data!!), error)
             }
         }
@@ -299,7 +300,7 @@ class Game private constructor(gameCode: String) {
                     data["letter"] as String,
                     data["maxPlayers"] as Long,
                     data["rounds"] as Long,
-                    data["admin"] as String
+                    data["admin"] as String,
                 )
             }
         }

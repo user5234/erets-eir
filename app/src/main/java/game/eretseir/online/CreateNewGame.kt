@@ -15,7 +15,7 @@ import gal.libs.betterradiogroup.BetterRadioGroup
 import game.eretseir.Game
 import game.eretseir.R
 import game.eretseir.databinding.RadioButtonBinding
-import game.eretseir.game.GameActivity
+import game.eretseir.game.activities.GameActivity
 import game.eretseir.home.connectedToRTDB
 import game.eretseir.removeWithAnimation
 import kotlinx.coroutines.CoroutineScope
@@ -95,7 +95,7 @@ class CreateNewGame : ConstraintLayout {
         findViewById<View>(R.id.startProgressBar).visibility = VISIBLE
         //if and when connected create the document on firebase
         scope.launch {
-            if (!connectedToRTDB)
+            if (!connectedToRTDB.value!!)
                 return@launch
             Game.createGame(gameCode, "א", maxPlayers, rounds, userName)
             //go to the lobby activity

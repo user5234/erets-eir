@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EretsEir">
         <activity
-            android:name=".game.GameActivity"
+            android:name=".game.activities.GameActivity"
             android:exported="false"
             android:screenOrientation="sensorLandscape" />
         <activity
