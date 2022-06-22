@@ -1,10 +1,6 @@
 package game.eretseir
 
-import android.view.View
-import android.widget.Checkable
-import android.widget.RadioButton
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import game.eretseir.home.HomeActivity
 import org.junit.Test
 import org.junit.runner.RunWith
 

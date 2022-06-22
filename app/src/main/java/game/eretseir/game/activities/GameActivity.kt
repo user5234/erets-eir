@@ -4,10 +4,9 @@ import android.os.Bundle
 import gal.libs.fullscreenactivity.FullScreenActivity
 import game.eretseir.Game
 import game.eretseir.R
+import game.eretseir.game.fragments.LobbyFragment
 
 class GameActivity : FullScreenActivity() {
-
-    val lettersLeft = mutableListOf("א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת")
 
     companion object {
         var rounds : Int = 0
@@ -31,6 +30,8 @@ class GameActivity : FullScreenActivity() {
         game = Game.fromExistingGame(gameCode)
 
         setContentView(R.layout.game_activity)
+
+        supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, LobbyFragment(false)).commit()
     }
 
     override fun onBackPressed() {

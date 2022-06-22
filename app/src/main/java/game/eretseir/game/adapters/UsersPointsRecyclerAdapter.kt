@@ -10,17 +10,24 @@ import androidx.recyclerview.widget.RecyclerView
 import gal.libs.bouncyrecyclerview.BouncyRecyclerView
 import game.eretseir.R
 
-open class UsersPointsRecyclerAdapter(private val admin : String, private val userName : String) : RecyclerView.Adapter<UsersPointsRecyclerAdapter.ViewHolder>() {
+open class UsersPointsRecyclerAdapter(private val admin : String, private val userName : String, private val showPoints : Boolean) : RecyclerView.Adapter<UsersPointsRecyclerAdapter.ViewHolder>() {
 
-    val players = mutableMapOf<String, Int>()
+    /**
+     * list of pairs instead of map for indexing
+     */
+    val players = mutableListOf<Pair<String, Long>>()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder
-            = ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.users_points_list_item, parent, false))
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val layout = if (showPoints) R.layout.users_points_list_item else R.layout.users_list_item
+        val view = LayoutInflater.from(parent.context).inflate(layout, parent, false)
+        return ViewHolder(view)
+    }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val userName = players.keys.toList()[position]
+        val userName = players[position].first
         holder.item.findViewById<TextView>(R.id.userNameTextView).text = userName
-        holder.item.findViewById<TextView>(R.id.pointsTextView).text = "${players[userName]}"
+        if (showPoints)
+            holder.item.findViewById<TextView>(R.id.pointsTextView).text = "${players[position].second}"
         if (userName == this.userName)
             holder.item.findViewById<CardView>(R.id.cardView).setCardBackgroundColor(Color.rgb(50, 56, 68))
         if (userName == admin)

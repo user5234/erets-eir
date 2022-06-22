@@ -1,11 +1,6 @@
 package game.eretseir
 
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import kotlin.random.Random
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -16,10 +11,8 @@ class ExampleUnitTest {
 
     @Test
     fun addTwoPlayers() {
-        val map = mapOf(
-            "1" to 1,
-            "2" to 2,
-            "3" to 3
-        )
+        val x = mutableMapOf(1 to 1, 2 to 2, 3 to 3, 4 to 4, 5 to 5, 6 to 6)
+        x.keys.remove(1)
+        println(x)
     }
 }

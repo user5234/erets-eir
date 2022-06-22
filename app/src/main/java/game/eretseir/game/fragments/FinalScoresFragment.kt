@@ -43,7 +43,7 @@ class FinalScoresFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val recyclerAdapter = UsersPointsRecyclerAdapter(GameActivity.admin, GameActivity.userName)
+        val recyclerAdapter = UsersPointsRecyclerAdapter(GameActivity.admin, GameActivity.userName, true)
         val players = recyclerAdapter.players
         binding.usersRecyclerView.adapter = recyclerAdapter
 
@@ -60,7 +60,7 @@ class FinalScoresFragment : Fragment() {
                     bestPlayer = last().id to Game.PlayerData.fromMap(last().data!!).points
                     removeLast()
                 }
-                .map { it.id to Game.PlayerData.fromMap(it.data!!).points.toInt() }
+                .map { it.id to Game.PlayerData.fromMap(it.data!!).points }
                 .asFlow()
             var index = 0
             //animate the winner
@@ -76,7 +76,7 @@ class FinalScoresFragment : Fragment() {
             //add the other players
             flow.collect {
                 delay(1000)
-                players[it.first] = it.second
+                players.add(it)
                 recyclerAdapter.notifyItemInserted(index)
                 binding.usersRecyclerView.scrollToPosition(index)
                 index++

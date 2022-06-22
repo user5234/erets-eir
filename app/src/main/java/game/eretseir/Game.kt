@@ -4,7 +4,10 @@ package game.eretseir
 
 import com.google.android.gms.tasks.Task
 import com.google.firebase.database.DatabaseReference
-import com.google.firebase.firestore.*
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.async
@@ -144,16 +147,10 @@ class Game private constructor(gameCode: String) {
     /**
      * add a snapshot listener with a [GameData] object for easier use
      */
-    fun addSnapshotListener(action: (snapshot: DocumentSnapshot?, data: GameData?, error: FirebaseFirestoreException?) -> Unit): ListenerRegistration {
-        return fsRef.addSnapshotListener { snapshot, error ->
-            if (snapshot == null) {
-                action(null, null, error)
-            } else {
-                println(snapshot.data)
-                action(snapshot, GameData.fromMap(snapshot.data!!), error)
-            }
+    fun addSnapshotListener(action: (snapshot: DocumentSnapshot?, data: GameData?, error: FirebaseFirestoreException?) -> Unit) =
+        fsRef.addSnapshotListener { snapshot, error ->
+            action(snapshot, snapshot?.data?.let { GameData.fromMap(it) }, error)
         }
-    }
 
     /**
      * gets the names of all the players in the game from RT DB

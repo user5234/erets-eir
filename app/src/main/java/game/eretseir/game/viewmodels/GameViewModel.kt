@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.FieldPath
 import game.eretseir.Game
 import game.eretseir.game.activities.GameActivity
 import kotlinx.coroutines.delay
@@ -26,21 +25,16 @@ class GameViewModel : ViewModel() {
     //----------------------------------------------------private MutableLiveData objects---------------------------------------------------------------
     //all the solutions from the database
     private val allSolutions : MutableLiveData<Map<String, MutableList<String>>> by lazy { MutableLiveData<Map<String, MutableList<String>>>() }
-    //set to true when the admin leaves
-    private val adminLeft : MutableLiveData<Boolean> by lazy { MutableLiveData<Boolean>() }
     //the seconds until the game ends
     private val secondsLeft : MutableLiveData<Int> by lazy { MutableLiveData<Int>(playtime + countdownSeconds + 2) }
     //if an error occurs
     private val error : MutableLiveData<String> by lazy { MutableLiveData<String>() }
     //--------------------------------------------------public LiveData accessor functions--------------------------------------------------------------
     fun allSolutions() : LiveData<Map<String, MutableList<String>>> = allSolutions
-    fun adminLeft() : LiveData<Boolean> = adminLeft
     fun secondsLeft() : LiveData<Int> = secondsLeft
     fun error() : LiveData<String> = error
 
-    fun allLiveData() : List<LiveData<out Any>> {
-        return listOf(allSolutions(), adminLeft(), secondsLeft(), error())
-    }
+    fun allLiveData() : List<LiveData<out Any>> = listOf(allSolutions(), secondsLeft(), error())
 
     init {
         //get all the solutions from the database
@@ -51,20 +45,6 @@ class GameViewModel : ViewModel() {
                 error.value = "מצטער אחי לקח יותר מדי זמן לשרת להגיב"
             }
         }
-        //listen for when the admin leaves
-        GameActivity.game.playersFsRef
-            .whereEqualTo(FieldPath.documentId(), GameActivity.admin)
-            .addSnapshotListener { value, error ->
-                //an error occurred
-                if (error != null) {
-                    this.error.value = "מצטער אחי הייתה בעיה עם השרת"
-                    return@addSnapshotListener
-                }
-                //the admin left
-                if (value?.isEmpty == true) {
-                    adminLeft.value = true
-                }
-            }
         timer = Timer().apply {
             scheduleAtFixedRate(timerTask {
                 secondsLeft.postValue(secondsLeft.value!! - 1)

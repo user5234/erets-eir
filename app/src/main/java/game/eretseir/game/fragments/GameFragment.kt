@@ -18,12 +18,14 @@ import game.eretseir.databinding.GameSolutionsRowBinding
 import game.eretseir.game.activities.GameActivity
 import game.eretseir.game.adapters.GameSolutionsRecyclerAdapter
 import game.eretseir.game.viewmodels.GameViewModel
+import game.eretseir.game.viewmodels.PlayersViewModel
 import kotlin.math.max
 
 
 class GameFragment : Fragment() {
 
-    private val viewModel : GameViewModel by viewModels()
+    private val gameViewModel : GameViewModel by viewModels()
+    private val playersViewModel : PlayersViewModel by viewModels()
 
     private lateinit var gameActivity : GameActivity
     private lateinit var binding : GameFragmentBinding
@@ -44,12 +46,12 @@ class GameFragment : Fragment() {
         binding.entryScreenLetter.text = getString(R.string.gameLetter, GameActivity.letter)
         binding.infoLetter.text = GameActivity.letter
 
-        viewModel.allSolutions().observe(viewLifecycleOwner) { allSolutions -> //map of categories: category name to its solutions
+        gameViewModel.allSolutions().observe(viewLifecycleOwner) { allSolutions -> //map of categories: category name to its solutions
             //Creating the rows for the game
             //used for the layout params
             var prevId: Int? = null
             //iterating over the player solutions (The map that holds the data the player will submit)
-            viewModel.playerSolutions.toMapHebrew().entries.forEach { category -> //key is the name, value is the solutions
+            gameViewModel.playerSolutions.toMapHebrew().entries.forEach { category -> //key is the name, value is the solutions
                 GameSolutionsRowBinding.inflate(layoutInflater, binding.gameSolutions, true).apply {
                     recyclerView.adapter = GameSolutionsRecyclerAdapter(allSolutions[category.key]!!, category.value) // category.value will change as the user submits his answers, so we use it later to send the solutions to tha database
                     textView.text = category.key
@@ -67,16 +69,16 @@ class GameFragment : Fragment() {
             binding.scrollView.doOnLayout { (it as HorizontalScrollView).fullScroll(View.FOCUS_RIGHT) }
         }
 
-        viewModel.secondsLeft().observe(viewLifecycleOwner) { secondsLeft ->
+        gameViewModel.secondsLeft().observe(viewLifecycleOwner) { secondsLeft ->
             val countDownAnim = AnimationUtils.loadAnimation(gameActivity, R.anim.countdown)
             //update the timers
             binding.infoTimer.text = "$secondsLeft"
-            if (secondsLeft > viewModel.playtime) {
-                binding.entryScreenCountdown.text = if (secondsLeft == viewModel.playtime + 1) "GO" else "${secondsLeft - viewModel.playtime - 1}"
+            if (secondsLeft > gameViewModel.playtime) {
+                binding.entryScreenCountdown.text = if (secondsLeft == gameViewModel.playtime + 1) "GO" else "${secondsLeft - gameViewModel.playtime - 1}"
                 binding.entryScreenCountdown.startAnimation(countDownAnim)
             }
             //remove the countdown screen
-            if (secondsLeft == viewModel.playtime)
+            if (secondsLeft == gameViewModel.playtime)
                 binding.root.removeWithAnimation(binding.entryScreen)
             //the game ended
             if (secondsLeft == 0) {
@@ -90,21 +92,27 @@ class GameFragment : Fragment() {
                 return@observe
             //there are still some rounds left
             if (GameActivity.rounds != 1) {
-                parentFragmentManager.beginTransaction().setTransition(TRANSIT_FRAGMENT_FADE).replace(R.id.fragmentContainer, LobbyFragment()).commit()
+                parentFragmentManager.beginTransaction().setTransition(TRANSIT_FRAGMENT_FADE).replace(R.id.fragmentContainer, LobbyFragment(true)).commit()
                 return@observe
             }
             //this was the last round
             parentFragmentManager.beginTransaction().setTransition(TRANSIT_FRAGMENT_FADE).replace(R.id.fragmentContainer, FinalScoresFragment()).commit()
         }
 
-        viewModel.adminLeft().observe(viewLifecycleOwner) { left -> if (left) somethingBadHappened("מצטער אחי המלך עזב") }
+        //listen for when the admin leaves
+        playersViewModel.player(GameActivity.admin).observe(viewLifecycleOwner) { data -> data ?: somethingBadHappened("מצטער אחי המלך עזב") }
+        //listen for when you are kicked
+        playersViewModel.player(GameActivity.admin).observe(viewLifecycleOwner) { data -> data ?: somethingBadHappened("מצטער אחי הייתה בעיה עם השרת") }
 
-        viewModel.error().observe(viewLifecycleOwner) { error -> somethingBadHappened(error) }
+        //listen for errors
+        gameViewModel.error().observe(viewLifecycleOwner) { error -> somethingBadHappened(error) }
+        playersViewModel.error().observe(viewLifecycleOwner) { error -> somethingBadHappened(error) }
     }
 
     private fun somethingBadHappened(description: String) {
-        //stop listening to the data from the view model
-        viewModel.allLiveData().forEach { liveData -> liveData.removeObservers(viewLifecycleOwner) }
+        //stop listening to the data from the view models
+        gameViewModel.allLiveData().forEach { liveData -> liveData.removeObservers(viewLifecycleOwner) }
+        playersViewModel.allLiveData().forEach { liveData -> liveData.removeObservers(viewLifecycleOwner) }
         //show an alert with the description
         showAlert(layoutInflater, binding.root, true, description, "חזור") { gameActivity.onBackPressed() }
     }
