@@ -105,7 +105,7 @@ class LobbyFragment(private val isFromGame : Boolean) : Fragment() {
             val popUpAnim = AnimationUtils.loadAnimation(gameActivity, R.anim.view_popup)
             container.startAnimation(popUpAnim)
             root.startAnimation(AlphaAnimation(0F, 1F).apply { duration = 500 })
-            lettersWheel.letters = lobbyViewModel.lettersLeft
+            lettersWheel.letters = GameActivity.lettersLeft
             //spin the wheel when clicking the button
             spinButton.setOnClickListener {
                 it as Button

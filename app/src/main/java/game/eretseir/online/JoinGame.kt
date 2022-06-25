@@ -98,14 +98,14 @@ class JoinGame : ConstraintLayout {
             //game is joinable
             game.addPlayer(userName)
             //go to lobby
-            post {
-                findViewById<View>(R.id.returnImageButton).performClick()
-                GameActivity.gameCode = gameCode
-                GameActivity.userName = userName
-                GameActivity.admin = game.data!!.admin
-                GameActivity.rounds = game.data!!.rounds.toInt()
-                GameActivity.isFromGame = false
-                context.startActivity(Intent(context, GameActivity::class.java))
+            Intent(context, GameActivity::class.java).apply {
+                putExtra("gameCode", gameCode)
+                putExtra("userName", userName)
+                putExtra("admin", game.data!!.admin)
+                putExtra("roundsLeft", game.data!!.rounds.toInt())
+                putExtra("isFromGame", false)
+                onlineActivity.startActivity(this)
+                onlineActivity.finish()
             }
         }
     }

@@ -9,8 +9,8 @@ import game.eretseir.game.fragments.LobbyFragment
 class GameActivity : FullScreenActivity() {
 
     companion object {
+        val lettersLeft = mutableListOf("א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת")
         var rounds : Int = 0
-        var isFromGame = false
         var letter : String = "א"
         lateinit var gameCode : String
         lateinit var userName : String
@@ -18,10 +18,10 @@ class GameActivity : FullScreenActivity() {
         lateinit var game : Game
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        isFromGame = intent.extras?.get("isFromGame") as Boolean
         userName = intent.extras?.get("userName") as String
         admin = intent.extras?.get("admin") as String
         rounds = intent.extras?.get("roundsLeft") as Int

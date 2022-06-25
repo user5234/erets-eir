@@ -19,7 +19,7 @@ class GameViewModel : ViewModel() {
 
     //the solutions that the player fills, which will be sent to the database
     val playerSolutions = Game.SolutionsData()
-    val playtime = 60
+    val playtime = 5
 
     private val countdownSeconds = 3
     private val timer : Timer
@@ -28,7 +28,7 @@ class GameViewModel : ViewModel() {
     //all the solutions from the database
     private val allSolutions : MutableLiveData<Map<String, MutableList<String>>> by lazy { MutableLiveData<Map<String, MutableList<String>>>() }
     //the seconds until the game ends
-    private val secondsLeft : MutableLiveData<Int> by lazy { MutableLiveData<Int>(playtime + countdownSeconds + 2) }
+    private val secondsLeft : MutableLiveData<Int> by lazy { MutableLiveData<Int>(playtime + countdownSeconds + 1) }
     //if an error occurs
     private val error : MutableLiveData<String> by lazy { MutableLiveData<String>() }
     //--------------------------------------------------public LiveData accessor functions--------------------------------------------------------------
@@ -39,6 +39,7 @@ class GameViewModel : ViewModel() {
     fun allLiveData() : List<LiveData<out Any>> = listOf(allSolutions(), secondsLeft(), error())
 
     init {
+        GameActivity.rounds--
         //get all the solutions from the database
         viewModelScope.launch {
             withTimeoutOrNull(countdownSeconds.toDuration(DurationUnit.SECONDS)) {

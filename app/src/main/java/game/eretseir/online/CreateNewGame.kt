@@ -98,16 +98,14 @@ class CreateNewGame : ConstraintLayout {
                 return@launch
             Game.createGame(gameCode, "א", maxPlayers, rounds, userName)
             //go to the lobby activity
-            post {
-                findViewById<View>(R.id.returnImageButton).performClick()
-                Intent(context, GameActivity::class.java).apply {
-                    putExtra("gameCode", gameCode)
-                    putExtra("userName", userName)
-                    putExtra("admin", userName)
-                    putExtra("roundsLeft", rounds.toInt())
-                    putExtra("isFromGame", false)
-                    onlineActivity.startActivity(this)
-                }
+            Intent(context, GameActivity::class.java).apply {
+                putExtra("gameCode", gameCode)
+                putExtra("userName", userName)
+                putExtra("admin", userName)
+                putExtra("roundsLeft", rounds.toInt())
+                putExtra("isFromGame", false)
+                onlineActivity.startActivity(this)
+                onlineActivity.finish()
             }
         }
     }

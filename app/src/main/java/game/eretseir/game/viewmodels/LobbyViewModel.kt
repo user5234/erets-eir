@@ -7,9 +7,6 @@ import game.eretseir.game.activities.GameActivity
 
 class LobbyViewModel : ViewModel() {
 
-    val lettersLeft = mutableListOf("א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת")
-    private lateinit var letter: String
-
     //----------------------------------------------------private MutableLiveData objects---------------------------------------------------------------
     private val gameStarted : MutableLiveData<Unit> by lazy { MutableLiveData<Unit>() }
     private val error : MutableLiveData<String> by lazy { MutableLiveData<String>() }
@@ -20,10 +17,10 @@ class LobbyViewModel : ViewModel() {
                 return@addSnapshotListener
             }
             //firestore thinks its clever
-            if (snapshot!!.metadata.isFromCache)
+            if (snapshot?.metadata?.isFromCache == true)
                 return@addSnapshotListener
             //firestore charged me for another read :(
-            if (data!!.isRunning)
+            if (data?.isRunning == true)
                 gameStarted.value = Unit
     }
 
@@ -34,9 +31,9 @@ class LobbyViewModel : ViewModel() {
     fun allLiveData() : List<LiveData<*>> = listOf(gameStarted, error)
     //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun notifyNewLetter(letter : String) { lettersLeft.remove(letter); this.letter = letter }
+    fun notifyNewLetter(letter : String) { GameActivity.lettersLeft.remove(letter); GameActivity.letter = letter }
 
-    fun notifyClickedStartGame() = GameActivity.game.startGame(letter) // will cause the start of the game from the gameStartedListener
+    fun notifyClickedStartGame() = GameActivity.game.startGame(GameActivity.letter) // will cause the start of the game from the gameStartedListener
 
     override fun onCleared() {
         gameStartedListener.remove()
