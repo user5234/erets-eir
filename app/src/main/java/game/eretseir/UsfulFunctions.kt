@@ -12,10 +12,6 @@ import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 
-val realtimeDatabase = FirebaseDatabase.getInstance()
-
-val auth = FirebaseAuth.getInstance()
-
 fun spToPx(sp : Float, context: Context) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.resources.displayMetrics)
 
 fun showAlert(layoutInflater: LayoutInflater,

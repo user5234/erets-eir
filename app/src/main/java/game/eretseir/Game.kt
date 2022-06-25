@@ -4,6 +4,7 @@ package game.eretseir
 
 import com.google.android.gms.tasks.Task
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
@@ -16,9 +17,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import kotlin.math.max
 
-val games = Firebase.firestore.collection("games")
-
-val onlineReference = realtimeDatabase.getReference(".info/connected")
+private val games = Firebase.firestore.collection("games")
 
 private val solutions = Firebase.firestore.collection("solutions")
 
@@ -56,7 +55,7 @@ class Game private constructor(gameCode: String) {
 
     private val fsRef = games.document(gameCode)
 
-    private val rtRef = realtimeDatabase.getReference("/online/$gameCode")
+    private val rtRef = FirebaseDatabase.getInstance().getReference("/online/$gameCode")
 
     val playersFsRef = fsRef.collection("players")
 
