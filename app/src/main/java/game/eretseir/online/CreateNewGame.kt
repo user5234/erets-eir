@@ -18,14 +18,13 @@ import game.eretseir.databinding.RadioButtonBinding
 import game.eretseir.game.activities.GameActivity
 import game.eretseir.home.connectedToRTDB
 import game.eretseir.removeWithAnimation
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class CreateNewGame : ConstraintLayout {
 
-    private val scope = CoroutineScope(Dispatchers.IO) //OnlineActivity.scope
+    private val onlineActivity = context as OnlineActivity
+    private val scope = onlineActivity.scope
 
     private lateinit var gameCode: String
 
@@ -44,7 +43,7 @@ class CreateNewGame : ConstraintLayout {
                 findViewById<View>(R.id.returnImageButton).setOnClickListener {
                     (parent as ViewGroup).removeWithAnimation(this)
                     //when the view is shown the home button is disabled, so we need to enable it when removing this view
-                    OnlineActivity.instance.binding.homeButton.isClickable = true
+                    onlineActivity.binding.homeButton.isClickable = true
                 }
                 //generates a new game code that doesn't exist in the database,
                 //and makes the button visible when succeeded and give it a click listener
@@ -64,7 +63,7 @@ class CreateNewGame : ConstraintLayout {
     }
 
     private fun addRadioButtons() {
-        val inflater = OnlineActivity.instance.layoutInflater
+        val inflater = onlineActivity.layoutInflater
         val maxPlayers = findViewById<BetterRadioGroup>(R.id.maxPlayersRadioGroup)
         val gamesAmount = findViewById<BetterRadioGroup>(R.id.roundsAmountRadioGroup)
         for (i in 2..6)
@@ -107,7 +106,7 @@ class CreateNewGame : ConstraintLayout {
                     putExtra("admin", userName)
                     putExtra("roundsLeft", rounds.toInt())
                     putExtra("isFromGame", false)
-                    OnlineActivity.instance.startActivity(this)
+                    onlineActivity.startActivity(this)
                 }
             }
         }

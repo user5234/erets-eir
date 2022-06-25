@@ -12,17 +12,12 @@ import game.eretseir.databinding.OnlineActivityBinding
 
 class OnlineActivity : FullScreenActivity() {
 
-    companion object {
-        lateinit var instance : OnlineActivity; private set
-        lateinit var scope : LifecycleCoroutineScope
-    }
-
+    lateinit var scope : LifecycleCoroutineScope
     lateinit var binding : OnlineActivityBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        instance = this
         scope = lifecycleScope
 
         binding = OnlineActivityBinding.inflate(layoutInflater)

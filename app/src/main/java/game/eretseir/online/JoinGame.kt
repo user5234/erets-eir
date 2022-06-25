@@ -17,13 +17,12 @@ import game.eretseir.R
 import game.eretseir.game.activities.GameActivity
 import game.eretseir.home.connectedToRTDB
 import game.eretseir.removeWithAnimation
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class JoinGame : ConstraintLayout {
 
-    private val scope = CoroutineScope(Dispatchers.IO) //OnlineActivity.scope
+    private val onlineActivity = context as OnlineActivity
+    private val scope = onlineActivity.scope
 
     constructor(ctx: Context) : super(ctx)
 
@@ -37,7 +36,7 @@ class JoinGame : ConstraintLayout {
             findViewById<ImageButton>(R.id.returnImageButton).setOnClickListener{
                 (parent as ViewGroup).removeWithAnimation(this@JoinGame)
                 //when the view is shown the home button is disabled, so we need to enable it when removing this view
-                OnlineActivity.instance.binding.homeButton.isClickable = true
+                onlineActivity.binding.homeButton.isClickable = true
             }
             //when clicking the button it checks if the game exists and is joinable and does shit accordingly
             findViewById<Button>(R.id.startButton).setOnClickListener{ joinLobby() }
