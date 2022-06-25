@@ -12,12 +12,14 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.*
 import kotlin.concurrent.timerTask
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class GameViewModel : ViewModel() {
 
     //the solutions that the player fills, which will be sent to the database
     val playerSolutions = Game.SolutionsData()
-    val playtime = 5
+    val playtime = 60
 
     private val countdownSeconds = 3
     private val timer : Timer
@@ -39,7 +41,7 @@ class GameViewModel : ViewModel() {
     init {
         //get all the solutions from the database
         viewModelScope.launch {
-            withTimeoutOrNull(countdownSeconds * 1000L) {
+            withTimeoutOrNull(countdownSeconds.toDuration(DurationUnit.SECONDS)) {
                 allSolutions.value = GameActivity.game.getSolutions(GameActivity.letter).toMapHebrew()
             } ?: run {
                 error.value = "מצטער אחי לקח יותר מדי זמן לשרת להגיב"

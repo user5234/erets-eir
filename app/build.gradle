@@ -43,10 +43,10 @@ dependencies {
     implementation 'com.google.android.material:material:1.6.1'
     implementation 'nl.dionsegijn:konfetti-xml:2.0.2'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.firebase:firebase-auth-ktx:21.0.5'
+    implementation 'com.google.firebase:firebase-auth-ktx:21.0.6'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.2'
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.4.1"
-    implementation 'com.google.firebase:firebase-firestore-ktx:24.1.2'
+    implementation 'com.google.firebase:firebase-firestore-ktx:24.2.0'
     implementation 'com.github.user5234:AppHelpers:1.0.5'
     implementation 'com.google.firebase:firebase-database-ktx:20.0.5'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1'
