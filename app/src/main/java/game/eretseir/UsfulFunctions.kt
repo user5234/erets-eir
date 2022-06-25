@@ -9,8 +9,6 @@ import android.view.animation.AlphaAnimation
 import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.TextView
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 
 fun spToPx(sp : Float, context: Context) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.resources.displayMetrics)
 
