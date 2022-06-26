@@ -103,7 +103,6 @@ class JoinGame : ConstraintLayout {
                 putExtra("userName", userName)
                 putExtra("admin", game.data!!.admin)
                 putExtra("roundsLeft", game.data!!.rounds.toInt())
-                putExtra("isFromGame", false)
                 onlineActivity.startActivity(this)
                 onlineActivity.finish()
             }

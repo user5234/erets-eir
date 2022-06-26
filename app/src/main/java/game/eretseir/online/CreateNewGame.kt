@@ -103,7 +103,6 @@ class CreateNewGame : ConstraintLayout {
                 putExtra("userName", userName)
                 putExtra("admin", userName)
                 putExtra("roundsLeft", rounds.toInt())
-                putExtra("isFromGame", false)
                 onlineActivity.startActivity(this)
                 onlineActivity.finish()
             }
